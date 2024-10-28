@@ -1,5 +1,5 @@
 import React from 'react';
-import { GoogleMap, useLoadScript, MarkerF, MarkerClustererF } from '@react-google-maps/api';
+import { GoogleMap, useLoadScript, MarkerF } from '@react-google-maps/api';
 
 const libraries = ['places'];
 const mapContainerStyle = {
@@ -42,54 +42,6 @@ const SampleMap = () => {
     return <div>Loading maps</div>;
   }
 
-  const options = {
-    averageCenter: true,
-    minimumClusterSize: 2,
-    styles: [
-      {
-        url: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m1.png",
-        width: 53,
-        height: 53,
-        textColor: '#fff',
-        textSize: 16,
-        anchorText: [0, 0]
-      },
-      {
-        url: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m2.png",
-        width: 56,
-        height: 56,
-        textColor: '#fff',
-        textSize: 16,
-        anchorText: [0, 0]
-      },
-      {
-        url: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m3.png",
-        width: 66,
-        height: 66,
-        textColor: '#fff',
-        textSize: 16,
-        anchorText: [0, 0]
-      },
-      {
-        url: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m4.png",
-        width: 78,
-        height: 78,
-        textColor: '#fff',
-        textSize: 16,
-        anchorText: [0, 0]
-      },
-      {
-        url: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m5.png",
-        width: 90,
-        height: 90,
-        textColor: '#fff',
-        textSize: 16,
-        anchorText: [0, 0]
-      }
-    ],
-    // 移除之前的 renderer 設定，因為現在使用預設的圖標渲染
-  };
-
   return (
     <div>
       <GoogleMap
@@ -97,20 +49,13 @@ const SampleMap = () => {
         zoom={13}
         center={center}
       >
-        <MarkerClustererF
-          options={options}
-        >
-          {(clusterer) =>
-            locations.map((location, index) => (
-              <MarkerF
-                key={index}
-                position={location}
-                clusterer={clusterer}
-                onClick={() => console.log(`Clicked marker ${index}`)}
-              />
-            ))
-          }
-        </MarkerClustererF>
+        {locations.map((location, index) => (
+          <MarkerF
+            key={index}
+            position={location}
+            onClick={() => console.log(`Clicked marker ${index}`)}
+          />
+        ))}
       </GoogleMap>
     </div>
   );
