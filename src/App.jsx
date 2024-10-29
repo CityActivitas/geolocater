@@ -1,7 +1,8 @@
 import './App.css'
 import SampleMap from './components/SampleMap'
-function App() {
 
+
+function App() {
   return (
     <>
       <h1>Asset Finder</h1>
