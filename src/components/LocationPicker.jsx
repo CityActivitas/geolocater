@@ -32,8 +32,8 @@ const mapContainerStyle = {
 };
 
 const center = {
-  lat: 25.0330,
-  lng: 121.5654
+  lat: 22.9908,
+  lng: 120.2133
 };
 
 const LocationPicker = () => {
