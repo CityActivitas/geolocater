@@ -1,4 +1,4 @@
-# 台南地圖定位系統
+# 地理資訊定位系統 (GeoLocator)
 
 主要用來測試 [@react-google-maps/api](https://github.com/JustFly1984/react-google-maps-api) 套件, 並且驗證如果製作地圖工具會用到的功能
 
