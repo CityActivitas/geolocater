@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { GoogleMap, useLoadScript, MarkerF, PolygonF } from '@react-google-maps/api';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { MapPin } from 'lucide-react';
 
 const libraries = ['places'];
 const mapContainerStyle = {
-  width: '1200px',
-  height: '500px',
+  width: '100%',
+  height: '384px',
 };
 
 // 修改 center 位置到台灣
@@ -119,53 +121,65 @@ const SampleMap = () => {
   if (!isLoaded) return <div>Loading maps</div>;
 
   return (
-    <div style={{ position: 'relative' }}>
-      {/* 搜尋框 */}
-      <div style={searchBoxStyle}>
-        <input
-          type="text"
-          placeholder="搜尋地點..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={searchInputStyle}
-        />
-        {searchTerm && (
-          <div style={searchResultsStyle}>
-            {filteredLocations.map((location, index) => (
-              <div
-                key={index}
-                onClick={() => handleLocationSelect(location)}
-                style={searchResultItemStyle}
-              >
-                {location.name}
-              </div>
-            ))}
+    <div className="w-full max-w-[1024px] mx-auto p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            地圖
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div style={{ position: 'relative' }}>
+            {/* 搜尋框 */}
+            <div style={searchBoxStyle}>
+              <input
+                type="text"
+                placeholder="搜尋地點..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={searchInputStyle}
+              />
+              {searchTerm && (
+                <div style={searchResultsStyle}>
+                  {filteredLocations.map((location, index) => (
+                    <div
+                      key={index}
+                      onClick={() => handleLocationSelect(location)}
+                      style={searchResultItemStyle}
+                    >
+                      {location.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <GoogleMap
+              mapContainerStyle={mapContainerStyle}
+              zoom={13}
+              center={center}
+              onLoad={setMap}
+            >
+              {/* 標記點 */}
+              {locations.map((location, index) => (
+                <MarkerF
+                  key={index}
+                  position={location}
+                  onClick={() => console.log(`Clicked: ${location.name}`)}
+                  title={location.name}
+                />
+              ))}
+
+              {/* 四邊形 */}
+              <PolygonF
+                paths={polygonPath}
+                options={polygonOptions}
+              />
+            </GoogleMap>
           </div>
-        )}
-      </div>
-
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        zoom={13}
-        center={center}
-        onLoad={setMap}
-      >
-        {/* 標記點 */}
-        {locations.map((location, index) => (
-          <MarkerF
-            key={index}
-            position={location}
-            onClick={() => console.log(`Clicked: ${location.name}`)}
-            title={location.name}  // 滑鼠懸停時顯示名稱
-          />
-        ))}
-
-        {/* 四邊形 */}
-        <PolygonF
-          paths={polygonPath}
-          options={polygonOptions}
-        />
-      </GoogleMap>
+        </CardContent>
+      </Card>
     </div>
   );
 };
