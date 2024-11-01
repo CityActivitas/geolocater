@@ -98,7 +98,7 @@ const LocationPicker = () => {
       const geocoder = new window.google.maps.Geocoder();
       const response = await geocoder.geocode({ address: searchInput });
 
-      if (response.results[0]) {
+      if (response.results && response.results.length > 0) {
         const location = response.results[0].geometry.location;
         const latLng = {
           lat: location.lat(),
@@ -118,17 +118,30 @@ const LocationPicker = () => {
       } else {
         toast({
           variant: "destructive",
-          title: "錯誤",
-          description: "找不到該地址",
+          title: "找不到結果",
+          description: "找不到符合的地址，請嘗試其他關鍵字",
         });
+        // 清空選中的位置
+        setSelectedLocation(null);
       }
     } catch (error) {
       console.error('Search error:', error);
-      toast({
-        variant: "destructive",
-        title: "錯誤",
-        description: "搜尋過程發生錯誤",
-      });
+      // 檢查錯誤訊息中是否包含 ZERO_RESULTS
+      if (error.message.includes('ZERO_RESULTS')) {
+        toast({
+          variant: "destructive",
+          title: "找不到結果",
+          description: "找不到符合的地址，請嘗試其他關鍵字",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "搜尋錯誤",
+          description: "搜尋過程發生錯誤，請稍後再試",
+        });
+      }
+      // 清空選中的位置
+      setSelectedLocation(null);
     } finally {
       setLoading(false);
     }
@@ -179,9 +192,9 @@ const LocationPicker = () => {
             </GoogleMap>
           </div>
 
-          {selectedLocation && (
-            <div className="mt-4 p-4 border rounded-lg bg-gray-50">
-              <h3 className="text-lg font-semibold mb-2">位置資訊</h3>
+          <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+            <h3 className="text-lg font-semibold mb-2">位置資訊</h3>
+            {selectedLocation ? (
               <div className="space-y-2">
                 <div>
                   <Label className="text-sm font-medium">地址</Label>
@@ -194,8 +207,12 @@ const LocationPicker = () => {
                   </p>
                 </div>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-gray-500">找不到符合的地址，請嘗試其他關鍵字</p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
