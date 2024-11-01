@@ -161,7 +161,7 @@ const LocationPicker = ({ apiKey }) => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4">
+    <div className="w-full max-w-[1024px] mx-auto p-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
