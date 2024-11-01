@@ -21,8 +21,6 @@ import {
 } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import { Trash2, MapPin, Copy, Search } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
@@ -41,12 +39,12 @@ const center = {
 const LocationPicker = () => {
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
-  const [savedLocations, setSavedLocations] = useState([]);
   const [searchInput, setSearchInput] = useState('');
   const [error, setError] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const { toast } = useToast();
 
@@ -71,13 +69,9 @@ const LocationPicker = () => {
         const location = {
           address: response.results[0].formatted_address,
           lat: latLng.lat,
-          lng: latLng.lng,
-          timestamp: new Date().toLocaleString(),
-          notes: ''
+          lng: latLng.lng
         };
-
-        setCurrentLocation(location);
-        setIsDialogOpen(true);
+        setSelectedLocation(location);
       }
     } catch (error) {
       console.error('Geocoding error:', error);
@@ -106,10 +100,20 @@ const LocationPicker = () => {
 
       if (response.results[0]) {
         const location = response.results[0].geometry.location;
-        map.panTo(location);
-        setMarker({
+        const latLng = {
           lat: location.lat(),
           lng: location.lng()
+        };
+
+        // 更新地圖位置和標記
+        map.panTo(location);
+        setMarker(latLng);
+
+        // 更新選中的位置資訊
+        setSelectedLocation({
+          address: response.results[0].formatted_address,
+          lat: latLng.lat,
+          lng: latLng.lng
         });
       } else {
         toast({
@@ -128,31 +132,6 @@ const LocationPicker = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const saveLocation = () => {
-    setSavedLocations(prev => [...prev, currentLocation]);
-    setIsDialogOpen(false);
-    toast({
-      title: "成功",
-      description: "已儲存位置",
-    });
-  };
-
-  const removeLocation = (index) => {
-    setSavedLocations(prev => prev.filter((_, i) => i !== index));
-    toast({
-      title: "成功",
-      description: "已刪除位置",
-    });
-  };
-
-  const copyCoordinates = (lat, lng) => {
-    navigator.clipboard.writeText(`${lat}, ${lng}`);
-    toast({
-      title: "已複製",
-      description: "座標已複製到剪貼簿",
-    });
   };
 
   if (loadError) return <Alert variant="destructive"><AlertDescription>地圖載入失敗</AlertDescription></Alert>;
@@ -200,114 +179,25 @@ const LocationPicker = () => {
             </GoogleMap>
           </div>
 
-          <Separator className="my-4" />
-
-          {/* 已儲存的位置列表 */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">已儲存的位置</h3>
-            <ScrollArea className="h-[300px] rounded-md border p-4">
-              {savedLocations.length === 0 ? (
-                <p className="text-gray-500 text-center">尚未儲存任何位置</p>
-              ) : (
-                <div className="space-y-4">
-                  {savedLocations.map((location, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary">
-                            {index + 1}
-                          </Badge>
-                          <p className="font-medium">{location.address}</p>
-                        </div>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <p
-                                className="text-sm text-gray-500 mt-1 cursor-pointer hover:text-gray-700"
-                                onClick={() => copyCoordinates(location.lat, location.lng)}
-                              >
-                                <span className="flex items-center gap-1">
-                                  <Copy className="h-3 w-3" />
-                                  {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                                </span>
-                              </p>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>點擊複製座標</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        <p className="text-xs text-gray-400 mt-1">{location.timestamp}</p>
-                        {location.notes && (
-                          <p className="text-sm text-gray-600 mt-1">{location.notes}</p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeLocation(index)}
-                        className="text-gray-500 hover:text-red-500"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+          {selectedLocation && (
+            <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+              <h3 className="text-lg font-semibold mb-2">位置資訊</h3>
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-sm font-medium">地址</Label>
+                  <p className="text-sm text-gray-600">{selectedLocation.address}</p>
                 </div>
-              )}
-            </ScrollArea>
-          </div>
+                <div>
+                  <Label className="text-sm font-medium">GPS 座標</Label>
+                  <p className="text-sm text-gray-600">
+                    {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>儲存位置</DialogTitle>
-            <DialogDescription>
-              確認是否要儲存這個位置？您可以加入備註。
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>地址</Label>
-              <p className="text-sm text-gray-500">{currentLocation?.address}</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label>座標</Label>
-              <p className="text-sm text-gray-500">
-                {currentLocation?.lat.toFixed(6)}, {currentLocation?.lng.toFixed(6)}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">備註</Label>
-              <Input
-                id="notes"
-                value={currentLocation?.notes || ''}
-                onChange={(e) => setCurrentLocation(prev => ({
-                  ...prev,
-                  notes: e.target.value
-                }))}
-                placeholder="輸入備註（選填）"
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              取消
-            </Button>
-            <Button onClick={saveLocation}>
-              儲存
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
