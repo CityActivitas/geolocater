@@ -1,5 +1,6 @@
 // LocationPicker.js
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState } from 'react';
+import { GoogleMap, useLoadScript, MarkerF } from '@react-google-maps/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,19 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2, MapPin, Copy, Search } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
-const LocationPicker = ({ apiKey }) => {
+const libraries = ['places', 'geocoding'];
+
+const mapContainerStyle = {
+  width: '100%',
+  height: '384px',
+};
+
+const center = {
+  lat: 25.0330,
+  lng: 121.5654
+};
+
+const LocationPicker = () => {
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
   const [savedLocations, setSavedLocations] = useState([]);
@@ -35,68 +48,30 @@ const LocationPicker = ({ apiKey }) => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const mapRef = useRef(null);
-  const geocoderRef = useRef(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const loadGoogleMaps = () => {
-      setLoading(true);
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-      script.async = true;
-      script.defer = true;
-      script.addEventListener('load', () => {
-        initializeMap();
-        setLoading(false);
-      });
-      document.body.appendChild(script);
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries,
+  });
+
+  const handleMapClick = async (event) => {
+    const latLng = {
+      lat: event.latLng.lat(),
+      lng: event.latLng.lng()
     };
 
-    loadGoogleMaps();
-  }, [apiKey]);
+    setMarker(latLng);
 
-  const initializeMap = () => {
-    const taipei = { lat: 25.033, lng: 121.565 };
-    const newMap = new window.google.maps.Map(mapRef.current, {
-      zoom: 13,
-      center: taipei,
-      styles: [
-        {
-          featureType: 'poi',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }]
-        }
-      ]
-    });
+    try {
+      const geocoder = new window.google.maps.Geocoder();
+      const response = await geocoder.geocode({ location: latLng });
 
-    geocoderRef.current = new window.google.maps.Geocoder();
-    setMap(newMap);
-
-    newMap.addListener('click', (e) => {
-      placeMarker(e.latLng);
-    });
-  };
-
-  const placeMarker = useCallback((latLng) => {
-    if (marker) {
-      marker.setMap(null);
-    }
-
-    const newMarker = new window.google.maps.Marker({
-      position: latLng,
-      map: map,
-      animation: window.google.maps.Animation.DROP
-    });
-
-    setMarker(newMarker);
-
-    geocoderRef.current?.geocode({ location: latLng }, (results, status) => {
-      if (status === 'OK' && results[0]) {
+      if (response.results[0]) {
         const location = {
-          address: results[0].formatted_address,
-          lat: latLng.lat(),
-          lng: latLng.lng(),
+          address: response.results[0].formatted_address,
+          lat: latLng.lat,
+          lng: latLng.lng,
           timestamp: new Date().toLocaleString(),
           notes: ''
         };
@@ -104,11 +79,17 @@ const LocationPicker = ({ apiKey }) => {
         setCurrentLocation(location);
         setIsDialogOpen(true);
       }
-    });
-  }, [map, marker]);
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      toast({
+        variant: "destructive",
+        title: "錯誤",
+        description: "無法取得地址資訊",
+      });
+    }
+  };
 
-  const searchLocation = () => {
-    setError('');
+  const searchLocation = async () => {
     if (!searchInput.trim()) {
       toast({
         variant: "destructive",
@@ -118,13 +99,18 @@ const LocationPicker = ({ apiKey }) => {
       return;
     }
 
-    setLoading(true);
-    geocoderRef.current?.geocode({ address: searchInput }, (results, status) => {
-      setLoading(false);
-      if (status === 'OK' && results[0]) {
-        const location = results[0].geometry.location;
-        map.setCenter(location);
-        placeMarker(location);
+    try {
+      setLoading(true);
+      const geocoder = new window.google.maps.Geocoder();
+      const response = await geocoder.geocode({ address: searchInput });
+
+      if (response.results[0]) {
+        const location = response.results[0].geometry.location;
+        map.panTo(location);
+        setMarker({
+          lat: location.lat(),
+          lng: location.lng()
+        });
       } else {
         toast({
           variant: "destructive",
@@ -132,7 +118,16 @@ const LocationPicker = ({ apiKey }) => {
           description: "找不到該地址",
         });
       }
-    });
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        variant: "destructive",
+        title: "錯誤",
+        description: "搜尋過程發生錯誤",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveLocation = () => {
@@ -160,6 +155,9 @@ const LocationPicker = ({ apiKey }) => {
     });
   };
 
+  if (loadError) return <Alert variant="destructive"><AlertDescription>地圖載入失敗</AlertDescription></Alert>;
+  if (!isLoaded) return <div>載入中...</div>;
+
   return (
     <div className="w-full max-w-[1024px] mx-auto p-4">
       <Card>
@@ -186,19 +184,25 @@ const LocationPicker = ({ apiKey }) => {
             </Button>
           </div>
 
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <div
-            ref={mapRef}
-            className="w-full h-96 rounded-lg overflow-hidden mb-4 bg-slate-100"
-          />
+          <div className="w-full h-96 rounded-lg overflow-hidden mb-4">
+            <GoogleMap
+              mapContainerStyle={mapContainerStyle}
+              zoom={13}
+              center={center}
+              onLoad={setMap}
+              onClick={handleMapClick}
+            >
+              {marker && (
+                <MarkerF
+                  position={marker}
+                />
+              )}
+            </GoogleMap>
+          </div>
 
           <Separator className="my-4" />
 
+          {/* 已儲存的位置列表 */}
           <div>
             <h3 className="text-lg font-semibold mb-2">已儲存的位置</h3>
             <ScrollArea className="h-[300px] rounded-md border p-4">
