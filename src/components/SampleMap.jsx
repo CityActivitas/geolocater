@@ -50,13 +50,103 @@ const polygonOptions = {
   zIndex: 1                  // 圖層層級
 };
 
+// 搜尋框樣式
+const searchBoxStyle = {
+  position: 'absolute',
+  top: '10px',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  width: '300px',
+  zIndex: 10,
+};
+
+const searchInputStyle = {
+  width: '100%',
+  padding: '10px',
+  borderRadius: '5px',
+  border: '1px solid #ccc',
+  boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+  backgroundColor: 'white',     // 白色背景
+  color: 'black',              // 黑色文字
+  fontSize: '16px',            // 適當的字體大小
+  outline: 'none',             // 移除focus時的外框
+};
+
+const searchResultsStyle = {
+  position: 'absolute',
+  top: '100%',
+  left: '0',
+  right: '0',
+  backgroundColor: 'white',    // 白色背景
+  border: '1px solid #ccc',
+  borderTop: 'none',
+  borderRadius: '0 0 5px 5px',
+  boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+  maxHeight: '200px',
+  overflowY: 'auto',
+};
+
+const searchResultItemStyle = {
+  padding: '10px',
+  cursor: 'pointer',
+  borderBottom: '1px solid #eee',
+  color: 'black',              // 黑色文字
+  backgroundColor: 'white',    // 白色背景
+  '&:hover': {
+    backgroundColor: '#f5f5f5' // 淺灰色懸停效果
+  }
+};
+
 const SampleMap = () => {
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries,
   });
+
+  // 處理搜尋輸入
+  const handleSearchInput = (value) => {
+    setSearchInput(value);
+    if (!value.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    // 過濾符合的位置
+    const filteredLocations = locations.filter(location =>
+      location.name.toLowerCase().includes(value.toLowerCase())
+    );
+    setSearchResults(filteredLocations);
+  };
+
+  // 處理搜尋結果選擇
+  const handlePlaceSelect = async (location) => {
+    try {
+      const geocoder = new window.google.maps.Geocoder();
+      const response = await geocoder.geocode({
+        location: { lat: location.lat, lng: location.lng }
+      });
+
+      setSelectedLocation({
+        type: 'marker',
+        ...location,
+        address: response.results?.[0]?.formatted_address || '無法取得地址'
+      });
+
+      setSearchInput('');
+      setSearchResults([]);
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      setSelectedLocation({
+        type: 'marker',
+        ...location,
+        address: '無法取得地址'
+      });
+    }
+  };
 
   // 處理標記點擊
   const handleMarkerClick = async (location) => {
@@ -127,7 +217,31 @@ const SampleMap = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="w-full h-96 rounded-lg overflow-hidden mb-4">
+          <div className="w-full h-96 rounded-lg overflow-hidden mb-4 relative">
+            {/* 搜尋框 */}
+            <div style={searchBoxStyle}>
+              <input
+                type="text"
+                style={searchInputStyle}
+                placeholder="搜尋景點..."
+                value={searchInput}
+                onChange={(e) => handleSearchInput(e.target.value)}
+              />
+              {searchResults.length > 0 && (
+                <div style={searchResultsStyle}>
+                  {searchResults.map((result) => (
+                    <div
+                      key={result.name}
+                      style={searchResultItemStyle}
+                      onClick={() => handlePlaceSelect(result)}
+                    >
+                      {result.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <GoogleMap
               mapContainerStyle={mapContainerStyle}
               zoom={13}
