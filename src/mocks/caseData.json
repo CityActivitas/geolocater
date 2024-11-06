@@ -1,0 +1,102 @@
+[
+    {
+        "id": 1,
+        "caseName": "台南市玉井游泳池",
+        "locationName": "台南市玉井區中山路",
+        "lat": 23.0027,
+        "lng": 120.1974,
+        "originalPurpose": "運動設施",
+        "activationGoal": "台南市玉井游泳池",
+        "state": "已媒合",
+        "other": "Additional notes about the location"
+    },
+    {
+        "id": 2,
+        "caseName": "黃金海岸船屋",
+        "locationName": "台南市安平區安北路",
+        "lat": 22.9843,
+        "lng": 120.1974,
+        "originalPurpose": "招商",
+        "activationGoal": "黃金海岸方舟",
+        "state": "進行中",
+        "other": "Additional notes about the location"
+    },
+    {
+        "id": 3,
+        "caseName": "台南市政府",
+        "locationName": "台南市安平區安北路",
+        "lat": 22.9908,
+        "lng": 120.2133,
+        "originalPurpose": "市政辦公",
+        "activationGoal": "台南市政府",
+        "state": "已媒合",
+        "other": "Additional notes about the location"
+    },
+    {
+        "id": 4,
+        "caseName": "台南火車站",
+        "locationName": "台南市安平區安北路",
+        "lat": 22.9997,
+        "lng": 120.2270,
+        "originalPurpose": "招商",
+        "activationGoal": "台南火車站",
+        "state": "已完成",
+        "other": "Additional notes about the location"
+    },
+    {
+        "id": 5,
+        "caseName": "赤崁樓",
+        "locationName": "台南市安平區安北路",
+        "lat": 23.0027,
+        "lng": 120.2078,
+        "originalPurpose": "招商",
+        "activationGoal": "赤崁樓",
+        "state": "已完成",
+        "other": "Additional notes about the location"
+    },
+    {
+        "id": 6,
+        "caseName": "安平古堡",
+        "locationName": "台南市安平區安北路",
+        "lat": 22.9919,
+        "lng": 120.1970,
+        "originalPurpose": "招商",
+        "activationGoal": "安平古堡",
+        "state": "已完成",
+        "other": "Additional notes about the location"
+    },
+    {
+        "id": 7,
+        "caseName": "林百貨",
+        "locationName": "台南市安平區安北路",
+        "lat": 22.9885,
+        "lng": 120.2033,
+        "originalPurpose": "招商",
+        "activationGoal": "林百貨",
+        "state": "待處理",
+        "other": "Additional notes about the location"
+    },
+    {
+        "id": 8,
+        "caseName": "神農街",
+        "locationName": "台南市安平區安北路",
+        "lat": 22.9946,
+        "lng": 120.2036,
+        "originalPurpose": "招商",
+        "activationGoal": "神農街",
+        "state": "進行中",
+        "other": "Additional notes about the location"
+    },
+    {
+        "id": 9,
+        "caseName": "台南美術館",
+        "locationName": "台南市安平區安北路",
+        "lat": 22.9997,
+        "lng": 120.2198,
+        "originalPurpose": "招商",
+        "activationGoal": "台南美術館",
+        "state": "進行中",
+        "other": "Additional notes about the location"
+    }
+]
+  
